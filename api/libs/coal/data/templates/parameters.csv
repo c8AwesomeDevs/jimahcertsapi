@@ -1,0 +1,53 @@
+id,Section,Parameters
+0,Property,Calorific Value
+1,Property,Total Moisture
+2,Property,Ash
+3,Property,Volatile Matter
+4,Property,Total Sulfur
+5,Property,Phosphorus
+6,Property,Chlorine
+7,Property,Sodium in Ash
+8,Proximate Analysis,Calorific Value
+9,Proximate Analysis,Moisture
+10,Proximate Analysis,Ash
+11,Proximate Analysis,Volatile Matter
+12,Proximate Analysis,Fixed Carbon
+13,Proximate Analysis,Fuel Ratio
+14,Proximate Analysis,Total Sulfur
+15,Ultimate Analysis,Carbon
+16,Ultimate Analysis,Hydrogen
+17,Ultimate Analysis,Nitrogen
+18,Ultimate Analysis,Sulfur
+19,Ultimate Analysis,Oxygen
+20,ASH FUSION TEMPERATURE (Reducing Atmosphere),Initial Deformation
+21,ASH FUSION TEMPERATURE (Reducing Atmosphere),Hemispherical Deformation
+22,ASH FUSION TEMPERATURE (Reducing Atmosphere),Flow
+23,ASH FUSION TEMPERATURE (Oxidizing Atmosphere),Initial Deformation
+24,ASH FUSION TEMPERATURE (Oxidizing Atmosphere),Hemispherical Deformation
+25,ASH FUSION TEMPERATURE (Oxidizing Atmosphere),Flow
+26,Physical Properties,Hardgrove Grindability Index
+27,Physical Properties,Abrasive Index
+28,Physical Properties,0 x 50
+29,Physical Properties,0 x 3
+30,Physical Properties,0 x 2
+31,Physical Properties,0 x 0.5
+32,Size Distribution,0 x 50 mm
+33,Size Distribution,0 x 3 mm
+34,Size Distribution,0 x 2 mm
+35,Size Distribution,0 x 0.5 mm
+36,Ash Analysis,SIO2
+37,Ash Analysis,AlO3
+38,Ash Analysis,Fe2O3
+39,Ash Analysis,CaO
+40,Ash Analysis,Fe2O3 + CaO
+41,Ash Analysis,MgO
+42,Ash Analysis,Na2O
+43,Ash Analysis,K2O
+44,Ash Analysis,K2O
+45,Ash Analysis,Na2O + K2O
+46,Ash Analysis,TiO2
+47,Ash Analysis,Mn3O4
+48,Ash Analysis,SO3
+49,Ash Analysis,P2O5
+50,Ash Analysis,BaO
+51,Ash Analysis,Undetermined

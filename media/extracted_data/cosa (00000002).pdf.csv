@@ -1,0 +1,41 @@
+Select,Server,Parameter,Description,Timestamp,Value,Validated
+x,CALIBR8,Property.UNITS BASIS,,2020-06-21 12:25:20.254728,5128,False
+x,CALIBR8,Property.Calorific Value,,2020-06-21 12:25:20.254728,23.5,True
+x,CALIBR8,Property.Ash,,2020-06-21 12:25:20.254728,33.4,True
+x,CALIBR8,Property.Volatile Matter,,2020-06-21 12:25:20.254728,0.55,True
+x,CALIBR8,Property.Total Sulfur,,2020-06-21 12:25:20.254728,0.006,True
+x,CALIBR8,Property.Phosphorus,,2020-06-21 12:25:20.254728,0.01,True
+x,CALIBR8,Property.Ash,,2020-06-21 12:25:20.254728,1.12,True
+x,CALIBR8,Proximate Analysis.Calorific Value,,2020-06-21 12:25:21.368749,5772,True
+x,CALIBR8,Proximate Analysis.Moisture,,2020-06-21 12:25:21.368749,13.9,True
+x,CALIBR8,Proximate Analysis.Volatile Matter,,2020-06-21 12:25:21.368749,37.6,True
+x,CALIBR8,Proximate Analysis.Fixed Carbon,,2020-06-21 12:25:21.368749,42.0,True
+x,CALIBR8,Proximate Analysis.Total Sulfur,,2020-06-21 12:25:21.368749,0.62,True
+x,CALIBR8,Ultimate Analysis.Carbon,,2020-06-21 12:25:25.777277,74.48,True
+x,CALIBR8,Ultimate Analysis.Hydrogen,,2020-06-21 12:25:25.777277,5.33,True
+x,CALIBR8,Ultimate Analysis.Nitrogen,,2020-06-21 12:25:25.777277,1.47,True
+x,CALIBR8,Ultimate Analysis.Sulfur,,2020-06-21 12:25:25.777277,0.78,True
+x,CALIBR8,Ultimate Analysis.Oxygen,,2020-06-21 12:25:25.777277,17.94,True
+x,CALIBR8,Ash Fusion Temperature (Reducing Atmosphere).Initial Deformation °C,,2020-06-21 12:25:26.378664,1190.0,False
+x,CALIBR8,Ash Fusion Temperature (Reducing Atmosphere).Hemispherical Deformation °C,,2020-06-21 12:25:26.378664,1230.0,False
+x,CALIBR8,Ash Fusion Temperature (Reducing Atmosphere).Flow °C,,2020-06-21 12:25:26.378664,1300.0,False
+x,CALIBR8,Ash Fusion Temperature (Oxidizing Atmosphere).Initial Deformation °C,,2020-06-21 12:25:26.956916,1240.0,False
+x,CALIBR8,Ash Fusion Temperature (Oxidizing Atmosphere).Hemispherical Deformation °C,,2020-06-21 12:25:26.956916,1310.0,False
+x,CALIBR8,Ash Fusion Temperature (Oxidizing Atmosphere).Flow °C,,2020-06-21 12:25:26.956916,1380.0,False
+x,CALIBR8,Physical Properties.Hardgrove Grindability Index,,2020-06-21 12:25:27.750967,45.0,True
+x,CALIBR8,Physical Properties.Abrasive Index,,2020-06-21 12:25:27.750967,15.0,True
+x,CALIBR8,Physical Properties.0x50mm,,2020-06-21 12:25:27.750967,97.0,False
+x,CALIBR8,Physical Properties.Ox3mm,,2020-06-21 12:25:27.750967,21.3,False
+x,CALIBR8,Physical Properties.Ox2mm,,2020-06-21 12:25:27.750967,19.0,False
+x,CALIBR8,Physical Properties.0x0.5mm,,2020-06-21 12:25:27.750967,4.0,False
+x,CALIBR8,Ash Analysis.SIO2,,2020-06-21 12:25:28.690604,50.36,True
+x,CALIBR8,Ash Analysis.AlO3,,2020-06-21 12:25:28.690604,19.56,True
+x,CALIBR8,Ash Analysis.CaO,,2020-06-21 12:25:28.690604,4.91,True
+x,CALIBR8,Ash Analysis.MgO,,2020-06-21 12:25:28.690604,4.04,True
+x,CALIBR8,Ash Analysis.Na2O,,2020-06-21 12:25:28.690604,1.96,True
+x,CALIBR8,Ash Analysis.TiO2,,2020-06-21 12:25:28.690604,80,True
+x,CALIBR8,"Ash Analysis.M304, % DB",,2020-06-21 12:25:28.690604,06,False
+x,CALIBR8,"Ash Analysis.P20s, % DB",,2020-06-21 12:25:28.690604,25,False
+x,CALIBR8,"Ash Analysis.SOs, % DB",,2020-06-21 12:25:28.690604,3.95,False
+x,CALIBR8,"Ash Analysis.Bao, % 0B",,2020-06-21 12:25:28.690604,12,False
+x,CALIBR8,Ash Analysis.Undetermined,,2020-06-21 12:25:28.690604,1.23,True

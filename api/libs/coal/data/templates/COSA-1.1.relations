@@ -1,0 +1,7 @@
+Regions,Type,Anchor_LEFT,Anchor_UP,Anchor_RIGHT,Anchor_DOWN
+Property,Param,-1,0,1,2
+Property,Values,1,1,999,2
+ASH FUSION TEMPERATURE (Reducing Atmosphere),Param,0,2,2,999
+ASH FUSION TEMPERATURE (Reducing Atmosphere),Values,2,2,3,999
+ASH FUSION TEMPERATURE (Oxidizing Atmosphere),Param,0,2,2,999
+ASH FUSION TEMPERATURE (Oxidizing Atmosphere),Values,3,3,999,999

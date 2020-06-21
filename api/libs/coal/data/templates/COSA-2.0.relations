@@ -1,0 +1,5 @@
+Regions,Type,Anchor_LEFT,Anchor_UP,Anchor_RIGHT,Anchor_DOWN
+Property,Param,-1,0,1,2
+Property,Values,1,1,999,2
+Proximate Analysis,Param,-1,2,1,999
+Proximate Analysis,Values,1,2,999,999

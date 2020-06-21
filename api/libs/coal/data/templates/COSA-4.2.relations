@@ -1,0 +1,11 @@
+Regions,Type,Anchor_LEFT,Anchor_UP,Anchor_RIGHT,Anchor_DOWN
+Ultimate Analysis,Param,-1,0,5,1
+Ultimate Analysis,Values,5,0,999,1
+Ash Fusion Temperature (Reducing Atmosphere),Param,-1,1,5,2
+Ash Fusion Temperature (Reducing Atmosphere),Values,5,1,999,2
+Ash Fusion Temperature (Oxidizing Atmosphere),Param,-1,2,5,3
+Ash Fusion Temperature (Oxidizing Atmosphere),Values,5,2,999,3
+Physical Properties,Param,-1,3,5,4
+Physical Properties,Values,5,3,999,4
+Ash Analysis,Param,-1,4,5,999
+Ash Analysis,Values,5,4,999,999

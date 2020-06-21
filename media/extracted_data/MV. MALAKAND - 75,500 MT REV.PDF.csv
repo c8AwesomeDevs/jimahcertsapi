@@ -1,0 +1,42 @@
+Select,Server,Parameter,Description,Timestamp,Value,Validated
+x,CALIBR8,Property.Total Moisture,,2020-06-21 16:53:28.460110,20.7,True
+x,CALIBR8,Property.Total Moisture,,2020-06-21 16:53:28.460110,19.7,True
+x,CALIBR8,Property.Total Moisture,,2020-06-21 16:53:28.460110,2,True
+x,CALIBR8,Property.Nitrogen,,2020-06-21 16:53:28.460110,30.1,False
+x,CALIBR8,Property.Grindability ( HGI ),,2020-06-21 16:53:28.460110,18.0,False
+x,CALIBR8,ASH FUSION TEMPERATURE (Reducing Atmosphere).Initial Deformation,,2020-06-21 16:53:29.250645,1180,True
+x,CALIBR8,ASH FUSION TEMPERATURE (Reducing Atmosphere).Hemispherical Deformation,,2020-06-21 16:53:29.250645,1210,True
+x,CALIBR8,ASH FUSION TEMPERATURE (Reducing Atmosphere).Flow,,2020-06-21 16:53:29.250645,1220,True
+x,CALIBR8,ASH FUSION TEMPERATURE (Oxidizing Atmosphere).Initial Deformation,,2020-06-21 16:53:30.185253,1250,True
+x,CALIBR8,ASH FUSION TEMPERATURE (Oxidizing Atmosphere).Hemispherical Deformation,,2020-06-21 16:53:30.185253,1280,True
+x,CALIBR8,ASH FUSION TEMPERATURE (Oxidizing Atmosphere).Flow,,2020-06-21 16:53:30.185253,1290,True
+x,CALIBR8,Proximate Analysis.Moisture,,2020-06-21 16:53:36.935293,18.0,True
+x,CALIBR8,Proximate Analysis.Ash,,2020-06-21 16:53:36.935293,2.1,True
+x,CALIBR8,Proximate Analysis.Volatile Matter,,2020-06-21 16:53:36.935293,34.7,True
+x,CALIBR8,Proximate Analysis.Fixed Carbon,,2020-06-21 16:53:36.935293,33.4,True
+x,CALIBR8,Proximate Analysis.Total Sulfur,,2020-06-21 16:53:36.935293,0.41,True
+x,CALIBR8,Proximate Analysis.Fuel Ratio,,2020-06-21 16:53:36.935293,0.96,True
+x,CALIBR8,Ultimate Analysis.Carbon,,2020-06-21 16:53:45.366567,73.8,True
+x,CALIBR8,Ultimate Analysis.Hydrogen,,2020-06-21 16:53:45.366567,4.86,True
+x,CALIBR8,Ultimate Analysis.Nitrogen,,2020-06-21 16:53:45.366567,1.11,True
+x,CALIBR8,Ultimate Analysis.Sulfur,,2020-06-21 16:53:45.366567,0.16,True
+x,CALIBR8,Ultimate Analysis.Oxygen,,2020-06-21 16:53:45.366567,20.07,True
+x,CALIBR8,Ultimate Analysis.Phosphorus,,2020-06-21 16:53:45.366567,0.002,True
+x,CALIBR8,Ultimate Analysis.Chlorine,,2020-06-21 16:53:45.366567,0.01,True
+x,CALIBR8,Ultimate Analysis.Sodium,,2020-06-21 16:53:45.366567,0.005,True
+x,CALIBR8,Ash Analysis.SIO2,,2020-06-21 16:53:46.503575,33.87,True
+x,CALIBR8,Ash Analysis.AlO3,,2020-06-21 16:53:46.503575,11.02,True
+x,CALIBR8,Ash Analysis.‘,,2020-06-21 16:53:46.503575,18.05,False
+x,CALIBR8,Ash Analysis.‘,,2020-06-21 16:53:46.503575,0.51,False
+x,CALIBR8,Ash Analysis.1,,2020-06-21 16:53:46.503575,18.99,False
+x,CALIBR8,Ash Analysis.MgO,,2020-06-21 16:53:46.503575,8.5,True
+x,CALIBR8,Ash Analysis.K20,,2020-06-21 16:53:46.503575,0.79,False
+x,CALIBR8,Ash Analysis.Na2O,,2020-06-21 16:53:46.503575,0.57,True
+x,CALIBR8,Ash Analysis.',,2020-06-21 16:53:46.503575,0.29,False
+x,CALIBR8,Ash Analysis.',,2020-06-21 16:53:46.503575,0.29,False
+x,CALIBR8,Ash Analysis.SO3,,2020-06-21 16:53:46.503575,6.67,True
+x,CALIBR8,Ash Analysis.Undetermined,,2020-06-21 16:53:46.503575,0.45,True
+x,CALIBR8,Size Distribution.0 x 50 mm,,2020-06-21 16:53:47.516566,95.4,True
+x,CALIBR8,Size Distribution.0 x 3 mm,,2020-06-21 16:53:47.516566,19.7,True
+x,CALIBR8,Size Distribution.0 x 2 mm,,2020-06-21 16:53:47.516566,16.6,True
+x,CALIBR8,Size Distribution.0 x 0.5 mm,,2020-06-21 16:53:47.516566,6.0,True
