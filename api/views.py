@@ -49,23 +49,18 @@ def extract_data(request):
 		print(e)
 		return Response({"error" : str(e)},status=status.HTTP_400_BAD_REQUEST)
 
-def check_extracted_data(_id):
-	queryset = ExtractedDataCSV.objects.filter(id = _id)
-	has_data = queryset.exists()
-	if has_data:
-		filepath = queryset[0].filepath
-		extracted_data_df = pd.read_csv(filepath)
-		extracted_data_df = extracted_data_df.where(extracted_data_df.notnull(), None)
-		results = extracted_data_df.to_dict(orient="records")
-		return results
-	return has_data
-
-def save_extracted_data(_id,name,cert_type,filepath,results_df):
-	print(results_df)
-	print("Saving extracted data")
-	results_df.to_csv(filepath, index=False)
-	extracted_data_csv = ExtractedDataCSV(id=_id,name=name,cert_type=cert_type,filepath=filepath)
-	extracted_data_csv.save()
+@api_view(['POST'])
+def save_edited_data(request):
+	print("Saving edited data")
+	try:
+		_id = request.query_params["_id"]
+		data_to_save = request.data
+		data_df = pd.DataFrame.from_records(data_to_save)
+		extracted_data_csv = ExtractedDataCSV.objects.get(id = _id)
+		data_df.to_csv(extracted_data_csv.filepath, index=False)
+		return Response({"message" : "Edited Data Saved"},status=status.HTTP_200_OK)
+	except Exception as e:
+		return Response({"message" : "Saving Failed"},status=status.HTTP_400_BAD_REQUEST)
 
 @background(schedule=timezone.now())
 def extract_data_background(_id):
@@ -111,3 +106,21 @@ def extract_data_background(_id):
 		cert.save()	
 	finally:
 		print("End Time : {}".format(datetime.now()))
+
+def check_extracted_data(_id):
+	queryset = ExtractedDataCSV.objects.filter(id = _id)
+	has_data = queryset.exists()
+	if has_data:
+		filepath = queryset[0].filepath
+		extracted_data_df = pd.read_csv(filepath)
+		extracted_data_df = extracted_data_df.where(extracted_data_df.notnull(), None)
+		results = extracted_data_df.to_dict(orient="records")
+		return results
+	return has_data
+
+def save_extracted_data(_id,name,cert_type,filepath,results_df):
+	print(results_df)
+	print("Saving extracted data")
+	results_df.to_csv(filepath, index=False)
+	extracted_data_csv = ExtractedDataCSV(id=_id,name=name,cert_type=cert_type,filepath=filepath)
+	extracted_data_csv.save()
