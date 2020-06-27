@@ -7,6 +7,8 @@ from django.conf import settings
 from rest_framework import viewsets
 from django.contrib.auth.models import User
 from django.utils import timezone
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 #from rest_framework.permissions import IsAuthenticated
 
 #Libraries
@@ -28,7 +30,7 @@ class CertificateViewSet(viewsets.ModelViewSet):
     """
     API endpoint for Certificates.
     """
-    #permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = CertificateSerializer
     queryset = Certificate.objects.all()
 
@@ -117,7 +119,8 @@ def extract_dga_params(_id):
     cert_name = cert.name
     cert_type = cert.cert_type
     #return Response({"message" : "Data Extracted","results" : results},status=status.HTTP_200_OK)
-    extracted_csv_file_path = "media\\extracted_data\\{}.csv".format(cert_name)
+    _dir,filename = os.path.split(cert.upload.path)
+    extracted_csv_file_path = "media\\extracted_data\\{}.csv".format(filename.replace("PDF","pdf").replace("pdf","csv"))
     save_extracted_data(_id,cert_name,cert_type,extracted_csv_file_path,final_results)
     cert.extraction_status = "E"
     cert.save() 
@@ -155,8 +158,8 @@ def extract_coal_properties(_id):
         #Save file
         cert_name = cert.name
         cert_type = cert.cert_type
-        #return Response({"message" : "Data Extracted","results" : results},status=status.HTTP_200_OK)
-        extracted_csv_file_path = "media\\extracted_data\\{}.csv".format(cert_name)
+        _dir,filename = os.path.split(cert.upload.path)
+        extracted_csv_file_path = "media\\extracted_data\\{}.csv".format(filename.replace("PDF","pdf").replace("pdf","csv"))
         save_extracted_data(_id,cert_name,cert_type,extracted_csv_file_path,results_df)
         cert.extraction_status = "E"
         cert.save() 
