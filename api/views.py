@@ -1,31 +1,49 @@
-# Create your views here.
+# DJANGO LIBRARIES
 from django.shortcuts import render
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,authentication_classes,permission_classes
 from rest_framework.response import Response
 from django.conf import settings
 from rest_framework import viewsets
+from rest_access_policy import AccessPolicy
 from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 #from rest_framework.permissions import IsAuthenticated
 
-#Libraries
+#DEVELOPER LIBRARIES
 from api.models import Certificate,ExtractedDataCSV,CoalParameters,CoalParametersSection,CoalParametersDividers
 from api.serializers import CertificateSerializer
 from api.libs.coal.controller.controller import Controller 
 from api.libs.dga.dga_extractor import *
 from api.libs.pi.pi import *
 
+#OTHER LIBRARIES
 import pandas as pd
 import os
-from datetime import datetime
+from datetime import datetime,timedelta
 from background_task import background
 
-
+#CONSTS
 consts_df = pd.read_csv("api\\libs\\coal\\data\\templates\\consts.csv")
 
+#REST ACCESS POLICY
+class PIDataAccessPolicy(AccessPolicy):
+    statements = [
+        {
+            "action": ["extract_data","view_data","save_edited_data","upload_edited_data","test_pi_connection"],
+            "principal": ["group:data_validator"],
+            "effect": "allow"            
+        },
+        {
+            "action": ["extract_data"],
+            "principal": ["group:data_validator","group:certificate_uploader"],
+            "effect": "allow"            
+        }
+    ]
+
+#VIEWS
 class CertificateViewSet(viewsets.ModelViewSet):
     """
     API endpoint for Certificates.
@@ -35,18 +53,13 @@ class CertificateViewSet(viewsets.ModelViewSet):
     queryset = Certificate.objects.all()
 
 @api_view(['POST'])
+@permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def extract_data(request):
     try:
         _id = request.query_params["_id"]
         queryset = Certificate.objects.filter(id = _id)
         cert = queryset[0]
         cert_path = os.path.join(settings.MEDIA_ROOT,str(cert.upload))
-        results = check_extracted_data(_id)
-        if results:
-            #print(results)
-            print(cert.__dict__)
-            return Response({"message" : "Data Extracted","results" : results,"cert":{"id":cert.id,'name':cert.name}},status=status.HTTP_200_OK)
-
         extract_data_background(_id)
         return Response({"message" : "Data Queued for Extraction","results" : []},status=status.HTTP_200_OK)
     except Exception as e:
@@ -54,6 +67,21 @@ def extract_data(request):
         return Response({"error" : str(e)},status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@permission_classes((IsAuthenticated,PIDataAccessPolicy))
+def view_data(request):
+    try:
+        _id = request.query_params["_id"]
+        queryset = Certificate.objects.filter(id = _id)
+        cert = queryset[0]
+        cert_path = os.path.join(settings.MEDIA_ROOT,str(cert.upload))
+        results = check_extracted_data(_id)
+        return Response({"message" : "Data Extracted","results" : results,"cert":{"id":cert.id,'name':cert.name}},status=status.HTTP_200_OK)
+    except Exception as e:
+        print(e)
+        return Response({"error" : str(e)},status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def save_edited_data(request):
     print("Saving edited data")
     try:
@@ -67,19 +95,54 @@ def save_edited_data(request):
         return Response({"message" : "Saving Failed"},status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@permission_classes((IsAuthenticated,PIDataAccessPolicy))
+def test_pi_connection(request):
+    print("Testing PI connection")
+    try:
+        host = request.data.get("host")
+        response = get_pi_connection(request)
+        if response.status_code == status.HTTP_200_OK:
+            dataservers_url = "{}/dataservers".format(host)
+            username = request.data.get("username")
+            password = request.data.get("password")
+            dataservers = get_pi_dataservers(dataservers_url,username,password)
+            return Response({"message" : "Connection to {} successful ".format(host),"dataservers": dataservers},status=status.HTTP_200_OK)
+        else:
+            return Response({"error": PI_CONNECTION_ERROR.format(host)},status=response.status_code)
+    except Exception as e:
+        print(e)
+        return Response({"message" : "Saving Failed"},status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def upload_edited_data(request):
     print("Saving edited data")
     try:
         _id = request.query_params["_id"]
-        data_to_save = request.data
+        metadata = request.data["metadata"]
+        data_to_save = request.data["piData"]
         data_df = pd.DataFrame.from_records(data_to_save)
+        data_df['Timestamp'] = pd.to_datetime(data_df['Timestamp']) 
+        data_df['Timestamp'] = data_df['Timestamp'].apply(lambda x : (x + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S.%f"))
         extracted_data_csv = ExtractedDataCSV.objects.get(id = _id)
         data_df.to_csv(extracted_data_csv.filepath, index=False)
-        print(data_df)
+
+        data_df['Uploaded']  = data_df.apply(
+                lambda row : upload_to_pi_solo(metadata,{
+                    "Parameter":row["Parameter"],
+                    "Timestamp":row["Timestamp"],
+                    "Value":row["Value"]}
+                ) if row["Validated"] else False,
+                axis=1
+            )
+        data_df.to_csv(extracted_data_csv.filepath, index=False)
         return Response({"message" : "Edited Data Uploaded"},status=status.HTTP_200_OK)
     except Exception as e:
-        return Response({"message" : "Saving Failed"},status=status.HTTP_400_BAD_REQUEST)
+        print(e)
+        return Response({"message" : "Uploading Failed"},status=status.HTTP_400_BAD_REQUEST)
 
+
+#HELPER FUNCTIONS
 @background(schedule=timezone.now())
 def extract_data_background(_id):
     cert = Certificate.objects.get(id = _id)
@@ -107,7 +170,7 @@ def extract_dga_params(_id):
             #df["Parameter"] = df[get_parameters(df.columns)].apply(lambda x: test_name if not x else  filter_out_uom(str(x)))
             df["Timestamp"] = datetime.now()
             df["Description"]  = None       
-            df["Validated"]  = False        
+            df["Validated"]  = True
             df['Value'] = df[get_values(df.columns)].apply(lambda x: extract_numbers_or_str(str(x)))
             df = df[~df["Parameter"].str.contains("Equipment") == True]
             concat.append(df)

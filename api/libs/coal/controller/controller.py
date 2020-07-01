@@ -68,6 +68,7 @@ class Controller():
         
         distance_matrix = pd.DataFrame(data=score_matrix, index=indexes, columns=columns)
         test_param_df["Validated"] = test_param_df[section].apply(lambda x:score_matrix_max[x][2])
+        test_param_df["Uploaded"] = False
         test_param_df[section] = test_param_df[section].apply(lambda x:score_matrix_max[x][1])
         return test_param_df
 
@@ -95,13 +96,13 @@ class Controller():
                 final_results.columns = [region,"Value"] 
                 final_results = self.validate_parameters(final_results,self.args["parameters"]) 
 
-                final_results.columns = ["Parameter","Value","Validated"] 
+                final_results.columns = ["Parameter","Value","Validated","Uploaded"]
                 final_results["Parameter"] = final_results["Parameter"].apply(lambda x : "{}.{}".format(region,x))
                 final_results["Select"] = 'x'
                 final_results["Server"] = 'CALIBR8'
                 final_results["Timestamp"] = datetime.now()
                 final_results["Description"]  = None
-                final_results = final_results[["Select","Server","Parameter","Description","Timestamp","Value","Validated"]]
+                final_results = final_results[["Select","Server","Parameter","Description","Timestamp","Value","Validated","Uploaded"]]
                 #self.excel_writer.write_to_ml(final_results)
                 #print(final_results)
                 #results[region] = final_results.to_dict(orient="records")
