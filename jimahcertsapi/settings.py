@@ -29,7 +29,7 @@ DEBUG = True
 
 hostname = socket.gethostname()
 host_ip = socket.gethostbyname(hostname)
-ALLOWED_HOSTS = ['localhost',"192.168.100.43"]
+ALLOWED_HOSTS = ['localhost',"192.168.100.43","192.168.0.101"]
 
 
 # Application definition
@@ -171,8 +171,6 @@ REST_FRAMEWORK = {
 }
 
 #JWT
-# Django project settings.py
-
 from datetime import timedelta
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),

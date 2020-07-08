@@ -55,6 +55,25 @@ class ExtractedDataCSV(models.Model):
 	def __str__(self):
 		return "{}-{}".format(self.id,self.name)
 
+class UserActivities(models.Model):
+	user = models.CharField(max_length=100)
+	timestamp = models.DateTimeField()
+	activity = models.CharField(max_length=500)
+	
+	IN_PROGRESS = "P"
+	COMPLETED = "C"
+	FAILED = "X"
+	STATUSES = [
+		(IN_PROGRESS,'In Progress'),
+		(COMPLETED,'Completed'),
+		(FAILED,'Failed')
+	]
+	status = models.CharField(
+		max_length=4,
+		choices=STATUSES,
+		default=IN_PROGRESS,
+	)
+
 class CoalParameters(models.Model):
 	section = models.CharField(max_length=100)
 	parameters = models.CharField(max_length=100)

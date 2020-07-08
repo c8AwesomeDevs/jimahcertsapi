@@ -5,9 +5,11 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, HttpResponseNotFound
+from django.core.mail import send_mail
 from rest_framework import status
 from rest_framework.decorators import api_view,authentication_classes,permission_classes
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 from rest_framework import viewsets
 from rest_access_policy import AccessPolicy
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -15,8 +17,8 @@ from rest_framework.permissions import IsAuthenticated
 #from rest_framework.permissions import IsAuthenticated
 
 #DEVELOPER LIBRARIES
-from api.models import Certificate,ExtractedDataCSV,CoalParameters,CoalParametersSection,CoalParametersDividers
-from api.serializers import CertificateSerializer
+from api.models import Certificate,ExtractedDataCSV,CoalParameters,CoalParametersSection,CoalParametersDividers,UserActivities
+from api.serializers import CertificateSerializer,UserActivitiesSerializer
 from api.libs.coal.controller.controller import Controller 
 from api.libs.dga.dga_extractor import *
 from api.libs.pi.pi import *
@@ -29,6 +31,9 @@ from background_task import background
 
 #CONSTS
 consts_df = pd.read_csv("api\\libs\\coal\\data\\templates\\consts.csv")
+IN_PROGRESS = "P"
+COMPLETED = "C"
+FAILED = "X"
 
 #REST ACCESS POLICY
 class PIDataAccessPolicy(AccessPolicy):
@@ -45,6 +50,13 @@ class PIDataAccessPolicy(AccessPolicy):
         }
     ]
 
+#PAGINATION
+class ModifiedPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 #VIEWS
 class CertificateViewSet(viewsets.ModelViewSet):
     """
@@ -54,6 +66,22 @@ class CertificateViewSet(viewsets.ModelViewSet):
     serializer_class = CertificateSerializer
     queryset = Certificate.objects.all()
 
+    def list(self, request):
+        queryset = Certificate.objects.all()
+        serializer = CertificateSerializer(queryset, many=True)
+        user = request.user
+        notify.send(user, recipient=user, verb='you reached level 10')
+        return Response(serializer.data)
+
+class UserActivitiesViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for Certificates.
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserActivitiesSerializer
+    pagination_class = ModifiedPagination
+    queryset = UserActivities.objects.all().order_by('-timestamp').exclude(status="P")
+
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def extract_data(request):
@@ -62,7 +90,10 @@ def extract_data(request):
         queryset = Certificate.objects.filter(id = _id)
         cert = queryset[0]
         cert_path = os.path.join(settings.MEDIA_ROOT,str(cert.upload))
-        extract_data_background(_id)
+        req_user = str(request.user)
+        activity = "Extract Data from Certificate with id {}".format(_id)
+        log_user_activity(req_user,activity,IN_PROGRESS)
+        extract_data_background(_id,req_user,activity)
         return Response({"message" : "Data Queued for Extraction","results" : []},status=status.HTTP_200_OK)
     except Exception as e:
         print(e)
@@ -106,12 +137,16 @@ def save_edited_data(request):
     print("Saving edited data")
     try:
         _id = request.query_params["_id"]
+        activity = "Edit Data from Certificate with id {}".format(_id)
+        req_user = str(request.user)
         data_to_save = request.data
         data_df = pd.DataFrame.from_records(data_to_save)
         extracted_data_csv = ExtractedDataCSV.objects.get(id = _id)
         data_df.to_csv(extracted_data_csv.filepath, index=False)
+        log_user_activity(req_user,activity,COMPLETED)
         return Response({"message" : "Edited Data Saved"},status=status.HTTP_200_OK)
     except Exception as e:
+        log_user_activity(req_user,activity,FAILED)
         return Response({"message" : "Saving Failed"},status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
@@ -136,9 +171,13 @@ def test_pi_connection(request):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def upload_edited_data(request):
-    print("Saving edited data")
+    print("UPloading edited data")
+    #TODO
+    #Only update validated data
     try:
         _id = request.query_params["_id"]
+        activity = "Upload Data from Certificate with id {}".format(_id)
+        req_user = str(request.user)
         metadata = request.data["metadata"]
         data_to_save = request.data["piData"]
         data_df = pd.DataFrame.from_records(data_to_save)
@@ -156,22 +195,24 @@ def upload_edited_data(request):
                 axis=1
             )
         data_df.to_csv(extracted_data_csv.filepath, index=False)
+        log_user_activity(req_user,activity,COMPLETED)
         return Response({"message" : "Edited Data Uploaded"},status=status.HTTP_200_OK)
     except Exception as e:
         print(e)
+        log_user_activity(req_user,activity,FAILED)
         return Response({"message" : "Uploading Failed"},status=status.HTTP_400_BAD_REQUEST)
 
 
 #HELPER FUNCTIONS
 @background(schedule=timezone.now())
-def extract_data_background(_id):
+def extract_data_background(_id,req_user,activity):
     cert = Certificate.objects.get(id = _id)
     if cert.cert_type == 'COAL': 
-        extract_coal_properties(_id)
+        extract_coal_properties(_id,req_user,activity)
     elif cert.cert_type == 'DGA':
-        extract_dga_params(_id)
+        extract_dga_params(_id,req_user,activity)
 
-def extract_dga_params(_id):
+def extract_dga_params(_id,req_user,activity):
     cert = Certificate.objects.get(id = _id)
     cert.extraction_status = "Q"
     cert.save()
@@ -207,9 +248,10 @@ def extract_dga_params(_id):
     save_extracted_data(_id,cert_name,cert_type,extracted_csv_file_path,final_results)
     cert.extraction_status = "E"
     cert.save() 
+    log_user_activity(req_user,activity,COMPLETED)
     print("End Time : {}".format(datetime.now()))
 
-def extract_coal_properties(_id):
+def extract_coal_properties(_id,req_user,activity):
     queryset = Certificate.objects.filter(id = _id)
     cert = queryset[0]
     cert.extraction_status = "Q"
@@ -245,11 +287,13 @@ def extract_coal_properties(_id):
         extracted_csv_file_path = "media\\extracted_data\\{}.csv".format(filename.replace("PDF","pdf").replace("pdf","csv"))
         save_extracted_data(_id,cert_name,cert_type,extracted_csv_file_path,results_df)
         cert.extraction_status = "E"
-        cert.save() 
+        cert.save()
+        log_user_activity(req_user,activity,COMPLETED)
     except Exception as e:
         print(e)
         cert.extraction_status = "X"
-        cert.save() 
+        cert.save()
+        log_user_activity(req_user,activity,FAILED)
     finally:
         print("End Time : {}".format(datetime.now()))
 
@@ -270,3 +314,9 @@ def save_extracted_data(_id,name,cert_type,filepath,results_df):
     results_df.to_csv(filepath, index=False)
     extracted_data_csv = ExtractedDataCSV(id=_id,name=name,cert_type=cert_type,filepath=filepath)
     extracted_data_csv.save()
+
+def log_user_activity(user,activity,status):
+    timestamp = datetime.now()
+    user_activity = UserActivities(user=user,activity=activity,timestamp=timestamp,status=status)
+    user_activity.save()
+    return user_activity.id

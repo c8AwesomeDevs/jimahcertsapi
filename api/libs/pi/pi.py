@@ -63,6 +63,7 @@ def upload_to_pi_solo(metadata,record):
 		data_archive = metadata.get("da")
 		param = record['Parameter']
 		endpoint = "https://{}/piwebapi/points?path=\\\\{}\\{}".format(host,data_archive,param)
+		print(endpoint)
 		web_id = get_web_id(endpoint,auth)
 		if web_id:
 			try:

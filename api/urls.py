@@ -4,9 +4,10 @@ from django.urls import path,include
 #from .views import *
 
 #model_views
-from api.views import CertificateViewSet,extract_data,view_data,save_edited_data,upload_edited_data,test_pi_connection,view_pdf
+from api.views import CertificateViewSet,UserActivitiesViewSet,extract_data,view_data,save_edited_data,upload_edited_data,test_pi_connection,view_pdf
 router = routers.DefaultRouter()
 router.register(r'certificates',CertificateViewSet)
+router.register(r'activitylogs',UserActivitiesViewSet)
 
 
 urlpatterns = [
