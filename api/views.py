@@ -1,13 +1,15 @@
 # DJANGO LIBRARIES
 from django.shortcuts import render
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.utils import timezone
+from django.core.files.storage import FileSystemStorage
+from django.http import HttpResponse, HttpResponseNotFound
 from rest_framework import status
 from rest_framework.decorators import api_view,authentication_classes,permission_classes
 from rest_framework.response import Response
-from django.conf import settings
 from rest_framework import viewsets
 from rest_access_policy import AccessPolicy
-from django.contrib.auth.models import User
-from django.utils import timezone
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 #from rest_framework.permissions import IsAuthenticated
@@ -32,12 +34,12 @@ consts_df = pd.read_csv("api\\libs\\coal\\data\\templates\\consts.csv")
 class PIDataAccessPolicy(AccessPolicy):
     statements = [
         {
-            "action": ["extract_data","view_data","save_edited_data","upload_edited_data","test_pi_connection"],
+            "action": ["extract_data","view_data","save_edited_data","upload_edited_data","test_pi_connection","view_pdf"],
             "principal": ["group:data_validator"],
             "effect": "allow"            
         },
         {
-            "action": ["extract_data"],
+            "action": ["extract_data","view_pdf"],
             "principal": ["group:data_validator","group:certificate_uploader"],
             "effect": "allow"            
         }
@@ -79,6 +81,24 @@ def view_data(request):
     except Exception as e:
         print(e)
         return Response({"error" : str(e)},status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes((IsAuthenticated,PIDataAccessPolicy))
+def view_pdf(request):
+    try:
+        fs = FileSystemStorage()
+        _id = request.query_params["_id"]
+        cert = Certificate.objects.get(id=_id)
+        cert_path = os.path.join(settings.MEDIA_ROOT,str(cert.upload))
+        if fs.exists(cert_path):
+            with fs.open(cert_path) as pdf:
+                response = HttpResponse(pdf, content_type='application/pdf')
+                response['Content-Disposition'] = 'attachment; filename="mypdf.pdf"'
+                return response
+        else:
+                return HttpResponseNotFound('The requested pdf was not found in our server.')
+    except Exception as e:
+        return HttpResponseNotFound('The requested pdf was not found in our server.')
 
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
