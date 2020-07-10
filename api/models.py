@@ -1,25 +1,21 @@
-"""Summary
+""" 
+Application Module for Models.
+TODO: (Details)
 """
+
 from django.db import models
 
 # Create your models here.
 class Certificate(models.Model):
 
-	"""Summary
+	"""Model Class for Certificates/Document
 	
 	Attributes:
-	    cert_type (TYPE): Description
-	    CERT_TYPES (TYPE): Description
-	    COAL (str): Description
-	    DGA (str): Description
-	    EXTRACTED (str): Description
-	    EXTRACTION_FAILED (str): Description
-	    extraction_status (TYPE): Description
-	    EXTRACTION_STATUSES (TYPE): Description
-	    name (TYPE): Description
-	    NOT_EXTRACTED (str): Description
-	    QUEUED (str): Description
-	    upload (TYPE): Description
+	    cert_type (models.CharField): Certificate Type Field
+	    CERT_TYPES (list): List of tuples on different certificate types
+	    extraction_status (models.CharField): Certificate Extraction Status Field
+	    name (models.CharField)): Certificate/Document name Field
+	    upload (models.FileField): Certificate File Field
 	"""
 	
 	name = models.CharField(max_length=100)

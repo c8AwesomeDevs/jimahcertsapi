@@ -1,4 +1,8 @@
-# DJANGO LIBRARIES
+""" Application Module for Views.
+"""
+
+
+# Django Libraries
 from django.shortcuts import render
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -9,84 +13,51 @@ from django.core.mail import send_mail
 from rest_framework import status
 from rest_framework.decorators import api_view,authentication_classes,permission_classes
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 from rest_framework import viewsets
-from rest_access_policy import AccessPolicy
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
-#from rest_framework.permissions import IsAuthenticated
-
-#DEVELOPER LIBRARIES
+#Developer Libaries
 from api.models import Certificate,ExtractedDataCSV,CoalParameters,CoalParametersSection,CoalParametersDividers,UserActivities
 from api.serializers import CertificateSerializer,UserActivitiesSerializer
 from api.libs.coal.controller.controller import Controller 
 from api.libs.dga.dga_extractor import *
 from api.libs.pi.pi import *
-
-#OTHER LIBRARIES
+from api.libs.consts.activitylog_status import *
+from data_access_policy import PIDataAccessPolicy
+from pagination import ModifiedPagination
+#Other Libraries
 import pandas as pd
 import os
 from datetime import datetime,timedelta
 from background_task import background
 
-#CONSTS
+#consts
 consts_df = pd.read_csv("api\\libs\\coal\\data\\templates\\consts.csv")
-IN_PROGRESS = "P"
-COMPLETED = "C"
-FAILED = "X"
-
-#REST ACCESS POLICY
-class PIDataAccessPolicy(AccessPolicy):
-    statements = [
-        {
-            "action": ["extract_data","view_data","save_edited_data","upload_edited_data","test_pi_connection","view_pdf"],
-            "principal": ["group:data_validator"],
-            "effect": "allow"            
-        },
-        {
-            "action": ["extract_data","view_pdf"],
-            "principal": ["group:data_validator","group:certificate_uploader"],
-            "effect": "allow"            
-        }
-    ]
-
-#PAGINATION
-
-class ModifiedPagination(PageNumberPagination):
-    """Summary
-    
-    Attributes:
-        max_page_size (int): Description
-        page_size (int): Description
-        page_size_query_param (str): Description
-    """    
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 100
-
 
 #VIEWS
 class CertificateViewSet(viewsets.ModelViewSet):
-    """Summary
+    """API Class View for Certificates model.
     
     Attributes:
-        permission_classes (TYPE): Description
-        queryset (TYPE): Description
-        serializer_class (TYPE): Description
+        permission_classes (Tuple): Tuple of Permission Classes.
+        queryset (QuerySet): Queryset for all certificates
+        serializer_class (Object): Type of Model Serializer.
+
+    Methods:
+        list(request)
+            Returns an api response of the list of certificates.
     """
-    
     permission_classes = (IsAuthenticated,)
     serializer_class = CertificateSerializer
     queryset = Certificate.objects.all()
-
     def list(self, request):
-        """Summary
+        """Returns an api response of the list of certificates.
         
         Args:
-            request (TYPE): Description
-        
+            request (Request): A request instance
+
         Returns:
-            TYPE: Description
+            Response: An API response of the list of certificates.
         """
         queryset = Certificate.objects.all()
         serializer = CertificateSerializer(queryset, many=True)
@@ -94,13 +65,14 @@ class CertificateViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 class UserActivitiesViewSet(viewsets.ModelViewSet):
-    """Summary
+    """API Class View for UserActivities model.
     
     Attributes:
-        pagination_class (TYPE): Description
-        permission_classes (TYPE): Description
-        queryset (TYPE): Description
-        serializer_class (TYPE): Description
+        pagination_class (Object): Type of Pagination Class
+        permission_classes (Object): Type of Permission Class
+        queryset (Queryset): Queryset on the list of certificates ordered by
+            timestamp and excluding 'IN_PROGRESS' status
+        serializer_class (Object): Type of Data Serializer Class
     """
     permission_classes = (IsAuthenticated,)
     serializer_class = UserActivitiesSerializer
@@ -110,13 +82,13 @@ class UserActivitiesViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def extract_data(request):
-    """Summary
+    """API Functional View on extracting data.
     
     Args:
-        request (TYPE): Description
+        request (Request): A request instance
     
     Returns:
-        TYPE: Description
+        Response: An API response describing the status message of extracting data.
     """
     try:
         _id = request.query_params["_id"]
@@ -135,13 +107,13 @@ def extract_data(request):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def view_data(request):
-    """Summary
+    """API Functional View on viewing extracted data.
     
     Args:
-        request (TYPE): Description
+        request (Request): A request instance
     
     Returns:
-        TYPE: Description
+        Response: An API response returning the results of data extration.
     """
     try:
         _id = request.query_params["_id"]
@@ -157,13 +129,13 @@ def view_data(request):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def view_pdf(request):
-    """Summary
+    """API Functional View on viewing uploaded pdf file.
     
     Args:
-        request (TYPE): Description
+        request (Request): A Request instance
     
     Returns:
-        TYPE: Description
+        HttpResponse: application/pdf response of the specified certificate.
     """
     try:
         fs = FileSystemStorage()
@@ -183,13 +155,13 @@ def view_pdf(request):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def save_edited_data(request):
-    """Summary
+    """API Functional View on saving edits from extracted data.
     
     Args:
-        request (TYPE): Description
+        request (Request): A Request instance
     
     Returns:
-        TYPE: Description
+        Response: An API response returning the status on saving edits from extracted data.
     """
     print("Saving edited data")
     try:
@@ -209,13 +181,13 @@ def save_edited_data(request):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def test_pi_connection(request):
-    """Summary
+    """API Functional View on testing PI connection.
     
     Args:
-        request (TYPE): Description
+        request (Request): A Request instance
     
     Returns:
-        TYPE: Description
+        Response: An API response returning the status on testing PI Connection.
     """
     print("Testing PI connection")
     try:
@@ -236,13 +208,13 @@ def test_pi_connection(request):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def upload_edited_data(request):
-    """Summary
+    """API Functional View on uploading extracted data to PI.
     
     Args:
-        request (TYPE): Description
+        request (Request): A Request instance
     
     Returns:
-        TYPE: Description
+        Response: An API response returning the status on uploading extracted data to PI.
     """
     print("UPloading edited data")
     try:
@@ -277,12 +249,12 @@ def upload_edited_data(request):
 #HELPER FUNCTIONS
 @background(schedule=timezone.now())
 def extract_data_background(_id,req_user,activity):
-    """Summary
+    """Runs a process queue on extraction on specific uploaded file on background.
     
     Args:
-        _id (TYPE): Description
-        req_user (TYPE): Description
-        activity (TYPE): Description
+        _id (int): Certificate/Document ID
+        req_user (str): User requesting the extraction.
+        activity (str): Description of the activity.
     """
     cert = Certificate.objects.get(id = _id)
     if cert.cert_type == 'COAL': 
@@ -291,12 +263,12 @@ def extract_data_background(_id,req_user,activity):
         extract_dga_params(_id,req_user,activity)
 
 def extract_dga_params(_id,req_user,activity):
-    """Summary
+    """Performs Data Extraction on DGA Certificates.
     
     Args:
-        _id (TYPE): Description
-        req_user (TYPE): Description
-        activity (TYPE): Description
+        _id (int): Certificate/Document ID
+        req_user (str): User requesting the extraction.
+        activity (str): Description of the activity.
     """
     cert = Certificate.objects.get(id = _id)
     cert.extraction_status = "Q"
@@ -337,12 +309,12 @@ def extract_dga_params(_id,req_user,activity):
     print("End Time : {}".format(datetime.now()))
 
 def extract_coal_properties(_id,req_user,activity):
-    """Summary
+    """Performs Data Extraction on Coal Test/Analysis Certificates
     
     Args:
-        _id (TYPE): Description
-        req_user (TYPE): Description
-        activity (TYPE): Description
+        _id (int): Certificate/Document ID
+        req_user (str): User requesting the extraction.
+        activity (str): Description of the activity.
     """
     queryset = Certificate.objects.filter(id = _id)
     cert = queryset[0]
@@ -390,13 +362,13 @@ def extract_coal_properties(_id,req_user,activity):
         print("End Time : {}".format(datetime.now()))
 
 def check_extracted_data(_id):
-    """Summary
+    """Returns if there are data extracted from a specific document
     
     Args:
-        _id (TYPE): Description
+        _id (int): Certificate/Document ID
     
     Returns:
-        TYPE: Description
+        dict/bool: Dictionary of Extracted Data or False.
     """
     queryset = ExtractedDataCSV.objects.filter(id = _id)
     has_data = queryset.exists()
@@ -409,14 +381,14 @@ def check_extracted_data(_id):
     return has_data
 
 def save_extracted_data(_id,name,cert_type,filepath,results_df):
-    """Summary
+    """Saves extracted data to a columnar data (.csv)
     
     Args:
-        _id (TYPE): Description
-        name (TYPE): Description
-        cert_type (TYPE): Description
-        filepath (TYPE): Description
-        results_df (TYPE): Description
+        _id (int): Certificate/Document ID
+        name (str): Document name
+        cert_type (str): Document/Certificate Type
+        filepath (str): Document path
+        results_df (DataFrame): Dataframe representation of extracted data.
     """
     print(results_df)
     print("Saving extracted data")
@@ -425,15 +397,15 @@ def save_extracted_data(_id,name,cert_type,filepath,results_df):
     extracted_data_csv.save()
 
 def log_user_activity(user,activity,status):
-    """Summary
+    """Logs user activities
     
     Args:
-        user (TYPE): Description
-        activity (TYPE): Description
-        status (TYPE): Description
+        user (str): Request User
+        activity (str): Activity Description
+        status (str): Activity Status
     
     Returns:
-        TYPE: Description
+        int: UserActivity ID
     """
     timestamp = datetime.now()
     user_activity = UserActivities(user=user,activity=activity,timestamp=timestamp,status=status)

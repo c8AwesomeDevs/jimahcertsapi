@@ -1,3 +1,7 @@
+""" 
+Application Module for URL's.
+TODO: (Details)
+"""
 from rest_framework import routers
 from django.urls import path,include
 #from rest_framework_simplejwt import views as jwt_views

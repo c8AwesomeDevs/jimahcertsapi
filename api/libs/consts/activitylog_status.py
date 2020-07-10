@@ -1,0 +1,3 @@
+IN_PROGRESS = "P"
+COMPLETED = "C"
+FAILED = "X"
