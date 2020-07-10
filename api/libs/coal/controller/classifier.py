@@ -1,3 +1,9 @@
+"""Summary
+
+Attributes:
+    footer_guess (TYPE): Description
+    keys (TYPE): Description
+"""
 #Search for Cert Types
 keys = {
     "cosa_cert": "CERTIFICATE OF SAMPLING AND ANALYSIS",
@@ -9,9 +15,30 @@ keys = {
 footer_guess = None
 
 class Classifier():
+
+    """Summary
+    
+    Attributes:
+        ocr (TYPE): Description
+    """
+    
     def __init__(self,ocr):
+        """Summary
+        
+        Args:
+            ocr (TYPE): Description
+        """
         self.ocr = ocr
     def classify_pages_based_on_keys(self,images,keys={}):
+        """Summary
+        
+        Args:
+            images (TYPE): Description
+            keys (dict, optional): Description
+        
+        Returns:
+            TYPE: Description
+        """
         mapping = {}
         
         for key in keys:

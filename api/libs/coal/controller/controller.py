@@ -1,3 +1,5 @@
+"""Summary
+"""
 from pdf2image import convert_from_path
 import pandas as pd
 from openpyxl import load_workbook
@@ -11,7 +13,23 @@ from .helper import locate_text,filter_values_only
 from .writer import Writer
 
 class Controller():
+
+    """Summary
+    
+    Attributes:
+        args (TYPE): Description
+        classifier (TYPE): Description
+        ocr (TYPE): Description
+        organizer (TYPE): Description
+    """
+    
     def __init__(self,manual_logger_path=None,args=None):
+        """Summary
+        
+        Args:
+            manual_logger_path (None, optional): Description
+            args (None, optional): Description
+        """
         #self.excel_writer =  Writer(manual_logger_path)
         self.ocr = OCR()
         self.classifier = Classifier(self.ocr)
@@ -19,6 +37,15 @@ class Controller():
         self.args = args
 
     def align_params_values(self,params,values):
+        """Summary
+        
+        Args:
+            params (TYPE): Description
+            values (TYPE): Description
+        
+        Returns:
+            TYPE: Description
+        """
         extracted_data_aligned = []
         for row in values.iterrows():
             top = row[1]["top"]
@@ -40,6 +67,15 @@ class Controller():
         return extracted_data_aligned_df
 
     def validate_parameters(self,test_param_df,true_param_df):
+        """Summary
+        
+        Args:
+            test_param_df (TYPE): Description
+            true_param_df (TYPE): Description
+        
+        Returns:
+            TYPE: Description
+        """
         section = test_param_df.columns[0]
         #test_param_df[section] = test_param_df[section].apply(lambda x:"{}***Unvalidated***".format(x))
         filtered_true_param_df =  true_param_df[true_param_df["section"]==section]["parameters"]
@@ -73,6 +109,17 @@ class Controller():
         return test_param_df
 
     def process_image(self,image,ocr_results_df,template,args):
+        """Summary
+        
+        Args:
+            image (TYPE): Description
+            ocr_results_df (TYPE): Description
+            template (TYPE): Description
+            args (TYPE): Description
+        
+        Returns:
+            TYPE: Description
+        """
         results = []
         try:
             if not template=="default":
@@ -115,9 +162,23 @@ class Controller():
             raise(e)
 
     def organize_regions_default(self,sections_df,dividers_df):
+        """Summary
+        
+        Args:
+            sections_df (TYPE): Description
+            dividers_df (TYPE): Description
+        """
         pass
 
     def process_pdf(self,pdf_path):
+        """Summary
+        
+        Args:
+            pdf_path (TYPE): Description
+        
+        Returns:
+            TYPE: Description
+        """
         images = convert_from_path(pdf_path)
         classifications = self.classifier.classify_pages_based_on_keys(images,keys)
         min_df = self.args["min_df"]
@@ -244,6 +305,11 @@ class Controller():
 
 
     def process_pdf_default(self,pdf_path):
+        """Summary
+        
+        Args:
+            pdf_path (TYPE): Description
+        """
         images = convert_from_path(pdf_path)
         classifications = self.classifier.classify_pages_based_on_keys(images,keys)
         min_df = self.args["min_df"]

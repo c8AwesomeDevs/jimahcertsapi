@@ -1,7 +1,20 @@
+"""Summary
+"""
 import requests
 import json
 
 def get_pi_connection(request):
+	"""Summary
+	
+	Args:
+	    request (TYPE): Description
+	
+	Returns:
+	    TYPE: Description
+	
+	Raises:
+	    e: Description
+	"""
 	try:
 		host = request.data.get("host")
 		username = request.data.get("username")
@@ -13,6 +26,19 @@ def get_pi_connection(request):
 		raise e
 
 def get_pi_dataservers(daservers_url,username,password):
+	"""Summary
+	
+	Args:
+	    daservers_url (TYPE): Description
+	    username (TYPE): Description
+	    password (TYPE): Description
+	
+	Returns:
+	    TYPE: Description
+	
+	Raises:
+	    e: Description
+	"""
 	try:
 		response = requests.get(daservers_url,auth=(username,password),verify=False)
 		return response.json()["Items"]
@@ -21,6 +47,15 @@ def get_pi_dataservers(daservers_url,username,password):
 		raise e
 
 def upload_to_pi(metadata,data_dict):
+	"""Summary
+	
+	Args:
+	    metadata (TYPE): Description
+	    data_dict (TYPE): Description
+	
+	Returns:
+	    TYPE: Description
+	"""
 	try:
 		print("Uploading data")
 		host = metadata.get("host")
@@ -55,6 +90,15 @@ def upload_to_pi(metadata,data_dict):
 		#raise e
 
 def upload_to_pi_solo(metadata,record):
+	"""Summary
+	
+	Args:
+	    metadata (TYPE): Description
+	    record (TYPE): Description
+	
+	Returns:
+	    TYPE: Description
+	"""
 	try:
 		host = metadata.get("host")
 		username = metadata.get("username")
@@ -63,7 +107,6 @@ def upload_to_pi_solo(metadata,record):
 		data_archive = metadata.get("da")
 		param = record['Parameter']
 		endpoint = "https://{}/piwebapi/points?path=\\\\{}\\{}".format(host,data_archive,param)
-		print(endpoint)
 		web_id = get_web_id(endpoint,auth)
 		if web_id:
 			try:
@@ -88,6 +131,15 @@ def upload_to_pi_solo(metadata,record):
 		return False
 
 def get_web_id(endpoint,auth):
+	"""Summary
+	
+	Args:
+	    endpoint (TYPE): Description
+	    auth (TYPE): Description
+	
+	Returns:
+	    TYPE: Description
+	"""
 	try:
 		resp = requests.get(endpoint,auth=auth,verify=False)
 		return resp.json()['WebId']
@@ -96,6 +148,16 @@ def get_web_id(endpoint,auth):
 		return None
 
 def upload_bulk(endpoint,auth,data):
+	"""Summary
+	
+	Args:
+	    endpoint (TYPE): Description
+	    auth (TYPE): Description
+	    data (TYPE): Description
+	
+	Returns:
+	    TYPE: Description
+	"""
 	try:
 		print(endpoint)
 		print(auth)

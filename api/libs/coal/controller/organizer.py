@@ -1,10 +1,28 @@
+"""Summary
+"""
 from .helper import locate_text
 import pandas as pd
 
 class Organizer():
+
+    """Summary
+    """
+    
     def __init__(self):
+        """Summary
+        """
         pass
     def layout_ocr_scope(self,df,template,args):
+        """Summary
+        
+        Args:
+            df (TYPE): Description
+            template (TYPE): Description
+            args (TYPE): Description
+        
+        Returns:
+            TYPE: Description
+        """
         if template == "COSA-1.1":
             regions = {
                 "Properties": {}, 
@@ -61,6 +79,16 @@ class Organizer():
             return regions
 
     def layout_ocr_scope_optimal(self,df,template,args):
+        """Summary
+        
+        Args:
+            df (TYPE): Description
+            template (TYPE): Description
+            args (TYPE): Description
+        
+        Returns:
+            TYPE: Description
+        """
         anchors_template = pd.read_csv("api\\libs\\coal\\data\\templates\\{}.anchors".format(template))
         relations_template = pd.read_csv("api\\libs\\coal\\data\\templates\\{}.relations".format(template))    
         regions={}
@@ -86,6 +114,17 @@ class Organizer():
             raise(e)
 
     def layout_ocr_scope_default(self,sections_df,dividers_df,min_df,max_df):
+        """Summary
+        
+        Args:
+            sections_df (TYPE): Description
+            dividers_df (TYPE): Description
+            min_df (TYPE): Description
+            max_df (TYPE): Description
+        
+        Returns:
+            TYPE: Description
+        """
         # print(sections_df)
         # print(dividers_df)
         # print(min_df)

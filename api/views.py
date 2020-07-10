@@ -51,7 +51,15 @@ class PIDataAccessPolicy(AccessPolicy):
     ]
 
 #PAGINATION
+
 class ModifiedPagination(PageNumberPagination):
+    """Summary
+    
+    Attributes:
+        max_page_size (int): Description
+        page_size (int): Description
+        page_size_query_param (str): Description
+    """    
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
@@ -59,23 +67,40 @@ class ModifiedPagination(PageNumberPagination):
 
 #VIEWS
 class CertificateViewSet(viewsets.ModelViewSet):
+    """Summary
+    
+    Attributes:
+        permission_classes (TYPE): Description
+        queryset (TYPE): Description
+        serializer_class (TYPE): Description
     """
-    API endpoint for Certificates.
-    """
+    
     permission_classes = (IsAuthenticated,)
     serializer_class = CertificateSerializer
     queryset = Certificate.objects.all()
 
     def list(self, request):
+        """Summary
+        
+        Args:
+            request (TYPE): Description
+        
+        Returns:
+            TYPE: Description
+        """
         queryset = Certificate.objects.all()
         serializer = CertificateSerializer(queryset, many=True)
         user = request.user
-        notify.send(user, recipient=user, verb='you reached level 10')
         return Response(serializer.data)
 
 class UserActivitiesViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint for Certificates.
+    """Summary
+    
+    Attributes:
+        pagination_class (TYPE): Description
+        permission_classes (TYPE): Description
+        queryset (TYPE): Description
+        serializer_class (TYPE): Description
     """
     permission_classes = (IsAuthenticated,)
     serializer_class = UserActivitiesSerializer
@@ -85,6 +110,14 @@ class UserActivitiesViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def extract_data(request):
+    """Summary
+    
+    Args:
+        request (TYPE): Description
+    
+    Returns:
+        TYPE: Description
+    """
     try:
         _id = request.query_params["_id"]
         queryset = Certificate.objects.filter(id = _id)
@@ -102,6 +135,14 @@ def extract_data(request):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def view_data(request):
+    """Summary
+    
+    Args:
+        request (TYPE): Description
+    
+    Returns:
+        TYPE: Description
+    """
     try:
         _id = request.query_params["_id"]
         queryset = Certificate.objects.filter(id = _id)
@@ -116,6 +157,14 @@ def view_data(request):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def view_pdf(request):
+    """Summary
+    
+    Args:
+        request (TYPE): Description
+    
+    Returns:
+        TYPE: Description
+    """
     try:
         fs = FileSystemStorage()
         _id = request.query_params["_id"]
@@ -134,6 +183,14 @@ def view_pdf(request):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def save_edited_data(request):
+    """Summary
+    
+    Args:
+        request (TYPE): Description
+    
+    Returns:
+        TYPE: Description
+    """
     print("Saving edited data")
     try:
         _id = request.query_params["_id"]
@@ -152,6 +209,14 @@ def save_edited_data(request):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def test_pi_connection(request):
+    """Summary
+    
+    Args:
+        request (TYPE): Description
+    
+    Returns:
+        TYPE: Description
+    """
     print("Testing PI connection")
     try:
         host = request.data.get("host")
@@ -171,9 +236,15 @@ def test_pi_connection(request):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def upload_edited_data(request):
+    """Summary
+    
+    Args:
+        request (TYPE): Description
+    
+    Returns:
+        TYPE: Description
+    """
     print("UPloading edited data")
-    #TODO
-    #Only update validated data
     try:
         _id = request.query_params["_id"]
         activity = "Upload Data from Certificate with id {}".format(_id)
@@ -206,6 +277,13 @@ def upload_edited_data(request):
 #HELPER FUNCTIONS
 @background(schedule=timezone.now())
 def extract_data_background(_id,req_user,activity):
+    """Summary
+    
+    Args:
+        _id (TYPE): Description
+        req_user (TYPE): Description
+        activity (TYPE): Description
+    """
     cert = Certificate.objects.get(id = _id)
     if cert.cert_type == 'COAL': 
         extract_coal_properties(_id,req_user,activity)
@@ -213,6 +291,13 @@ def extract_data_background(_id,req_user,activity):
         extract_dga_params(_id,req_user,activity)
 
 def extract_dga_params(_id,req_user,activity):
+    """Summary
+    
+    Args:
+        _id (TYPE): Description
+        req_user (TYPE): Description
+        activity (TYPE): Description
+    """
     cert = Certificate.objects.get(id = _id)
     cert.extraction_status = "Q"
     cert.save()
@@ -252,6 +337,13 @@ def extract_dga_params(_id,req_user,activity):
     print("End Time : {}".format(datetime.now()))
 
 def extract_coal_properties(_id,req_user,activity):
+    """Summary
+    
+    Args:
+        _id (TYPE): Description
+        req_user (TYPE): Description
+        activity (TYPE): Description
+    """
     queryset = Certificate.objects.filter(id = _id)
     cert = queryset[0]
     cert.extraction_status = "Q"
@@ -298,6 +390,14 @@ def extract_coal_properties(_id,req_user,activity):
         print("End Time : {}".format(datetime.now()))
 
 def check_extracted_data(_id):
+    """Summary
+    
+    Args:
+        _id (TYPE): Description
+    
+    Returns:
+        TYPE: Description
+    """
     queryset = ExtractedDataCSV.objects.filter(id = _id)
     has_data = queryset.exists()
     if has_data:
@@ -309,6 +409,15 @@ def check_extracted_data(_id):
     return has_data
 
 def save_extracted_data(_id,name,cert_type,filepath,results_df):
+    """Summary
+    
+    Args:
+        _id (TYPE): Description
+        name (TYPE): Description
+        cert_type (TYPE): Description
+        filepath (TYPE): Description
+        results_df (TYPE): Description
+    """
     print(results_df)
     print("Saving extracted data")
     results_df.to_csv(filepath, index=False)
@@ -316,6 +425,16 @@ def save_extracted_data(_id,name,cert_type,filepath,results_df):
     extracted_data_csv.save()
 
 def log_user_activity(user,activity,status):
+    """Summary
+    
+    Args:
+        user (TYPE): Description
+        activity (TYPE): Description
+        status (TYPE): Description
+    
+    Returns:
+        TYPE: Description
+    """
     timestamp = datetime.now()
     user_activity = UserActivities(user=user,activity=activity,timestamp=timestamp,status=status)
     user_activity.save()

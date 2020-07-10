@@ -1,10 +1,24 @@
+"""Summary
+"""
 import pytesseract
 import pandas as pd
 import io
 
 
 class OCR():
+
+	"""Summary
+	"""
+	
 	def get_ocr_results(self,img):
+	    """Summary
+	    
+	    Args:
+	        img (TYPE): Description
+	    
+	    Returns:
+	        TYPE: Description
+	    """
 	    df_results = pytesseract.image_to_data(img).replace('"',"")
 	    df_results_data = io.StringIO(df_results)
 	    df_results_df = pd.read_csv(df_results_data, sep="\t")
@@ -12,6 +26,14 @@ class OCR():
 	    return df_results_df
 
 	def filter_ocr_results(self,df):
+	    """Summary
+	    
+	    Args:
+	        df (TYPE): Description
+	    
+	    Returns:
+	        TYPE: Description
+	    """
 	    levels = df["level"].drop_duplicates().to_list()
 	    pages = df["page_num"].drop_duplicates().to_list()
 	    blocks = df["block_num"].drop_duplicates().to_list()
