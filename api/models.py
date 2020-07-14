@@ -19,7 +19,6 @@ class Certificate(models.Model):
 	"""
 	
 	name = models.CharField(max_length=100)
-
 	COAL = 'COAL'
 	DGA = 'DGA'
 	CERT_TYPES = [
@@ -31,9 +30,7 @@ class Certificate(models.Model):
 		choices=CERT_TYPES,
 		default=COAL,
 	)
-
 	upload = models.FileField(upload_to='uploads\\')
-
 	EXTRACTED = "E"
 	QUEUED = "Q"
 	NOT_EXTRACTED = "NE"
@@ -49,6 +46,8 @@ class Certificate(models.Model):
 		choices=EXTRACTION_STATUSES,
 		default=NOT_EXTRACTED,
 	)
+	tag_configuration_id = models.IntegerField(default=-1)
+
 
 	def __str__(self):
 		"""Summary
@@ -84,6 +83,30 @@ class ExtractedDataCSV(models.Model):
 		default=COAL,
 	)
 	filepath = models.CharField(max_length=100)
+
+	def __str__(self):
+		"""Summary
+		
+		Returns:
+		    TYPE: Description
+		"""
+		return "{}-{}".format(self.id,self.name)
+
+class TagConfigurationTemplate(models.Model):
+
+	"""Summary
+	
+	Attributes:
+	    conf_type (TYPE): Description
+	    CONFIGURATION_TYPES (TYPE): Description
+	    name (TYPE): Description
+	    references (TYPE): Description
+	    transformers (TYPE): Description
+	"""
+	
+	name = models.CharField(max_length=100)
+	transformation = models.CharField(max_length=9999)
+	reference = models.FileField(upload_to='configurations\\',blank = True)
 
 	def __str__(self):
 		"""Summary

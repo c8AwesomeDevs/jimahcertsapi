@@ -10,12 +10,12 @@ class PIDataAccessPolicy(AccessPolicy):
     
     statements = [
         {
-            "action": ["extract_data","view_data","save_edited_data","upload_edited_data","test_pi_connection","view_pdf"],
+            "action": ["get_user_groups","extract_data","view_data","save_edited_data","upload_edited_data","test_pi_connection","view_pdf","preview_configuration_api"],
             "principal": ["group:data_validator"],
             "effect": "allow"            
         },
         {
-            "action": ["extract_data","view_pdf"],
+            "action": ["get_user_groups","extract_data","view_pdf"],
             "principal": ["group:data_validator","group:certificate_uploader"],
             "effect": "allow"            
         }

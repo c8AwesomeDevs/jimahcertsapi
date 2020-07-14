@@ -4,7 +4,7 @@ TODO: (Details)
 """
 
 from rest_framework import serializers
-from .models import Certificate,UserActivities
+from .models import Certificate,UserActivities,TagConfigurationTemplate
 
 
 class CertificateSerializer(serializers.HyperlinkedModelSerializer):
@@ -18,7 +18,7 @@ class CertificateSerializer(serializers.HyperlinkedModelSerializer):
 		    model (object): Model Class
 		"""
 		model = Certificate
-		fields = ['id','name', 'cert_type','upload','extraction_status']
+		fields = ['id','name', 'cert_type','upload','extraction_status','tag_configuration_id']
 
 class UserActivitiesSerializer(serializers.HyperlinkedModelSerializer):
 	"""
@@ -33,3 +33,8 @@ class UserActivitiesSerializer(serializers.HyperlinkedModelSerializer):
 		"""
 		model = UserActivities
 		fields = ['id','user', 'timestamp','activity','status']
+
+class TagConfigurationTemplateSerializer(serializers.HyperlinkedModelSerializer):
+	class Meta:
+		model = TagConfigurationTemplate
+		fields = ['id','name','transformation','reference']

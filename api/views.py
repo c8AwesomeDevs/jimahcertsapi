@@ -1,4 +1,6 @@
-""" Application Module for Views.
+""" 
+Application Module for Views.
+TODO: (Details)
 """
 
 
@@ -8,6 +10,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.files.storage import FileSystemStorage
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import HttpResponse, HttpResponseNotFound
 from django.core.mail import send_mail
 from rest_framework import status
@@ -15,24 +18,33 @@ from rest_framework.decorators import api_view,authentication_classes,permission
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,BasePermission
 #Developer Libaries
-from api.models import Certificate,ExtractedDataCSV,CoalParameters,CoalParametersSection,CoalParametersDividers,UserActivities
-from api.serializers import CertificateSerializer,UserActivitiesSerializer
+from api.models import Certificate,ExtractedDataCSV,TagConfigurationTemplate,CoalParameters,CoalParametersSection,CoalParametersDividers,UserActivities
+from api.serializers import CertificateSerializer,UserActivitiesSerializer,TagConfigurationTemplateSerializer
 from api.libs.coal.controller.controller import Controller 
 from api.libs.dga.dga_extractor import *
 from api.libs.pi.pi import *
 from api.libs.consts.activitylog_status import *
-from data_access_policy import PIDataAccessPolicy
-from pagination import ModifiedPagination
+from api.libs.tagconfiguration.tag_conf import preview_configuration
+from .data_access_policy import PIDataAccessPolicy
+from .pagination import ModifiedPagination
 #Other Libraries
 import pandas as pd
 import os
 from datetime import datetime,timedelta
 from background_task import background
+from urllib.parse import urlparse
 
 #consts
 consts_df = pd.read_csv("api\\libs\\coal\\data\\templates\\consts.csv")
+
+#PERMISSIONS
+class IsDataValidator(BasePermission):
+    def has_permission(self, request, view):
+        if request.user and request.user.groups.filter(name='data_validator'):
+            return True
+        return False
 
 #VIEWS
 class CertificateViewSet(viewsets.ModelViewSet):
@@ -64,6 +76,34 @@ class CertificateViewSet(viewsets.ModelViewSet):
         user = request.user
         return Response(serializer.data)
 
+    def partial_update(self,request,*args, **kwargs):
+        instance = self.queryset.get(pk=kwargs.get('pk'))
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+class TagConfigurationTemplateViewSet(viewsets.ModelViewSet):
+    """API Class View for Certificates model.
+    
+    Attributes:
+        permission_classes (Tuple): Tuple of Permission Classes.
+        queryset (QuerySet): Queryset for all certificates
+        serializer_class (Object): Type of Model Serializer.
+
+    Methods:
+        list(request)
+            Returns an api response of the list of certificates.
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = TagConfigurationTemplateSerializer
+    queryset = TagConfigurationTemplate.objects.all()
+
+    def get_permissions(self):    
+        self.permission_classes = [IsAuthenticated,IsDataValidator,]
+        return super(TagConfigurationTemplateViewSet, self).get_permissions()
+
+
 class UserActivitiesViewSet(viewsets.ModelViewSet):
     """API Class View for UserActivities model.
     
@@ -78,6 +118,14 @@ class UserActivitiesViewSet(viewsets.ModelViewSet):
     serializer_class = UserActivitiesSerializer
     pagination_class = ModifiedPagination
     queryset = UserActivities.objects.all().order_by('-timestamp').exclude(status="P")
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,PIDataAccessPolicy))
+def get_user_groups(request):
+    groups = request.user.groups.all()
+    groups = [group.name for group in groups]
+    return Response(groups,status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
@@ -120,8 +168,8 @@ def view_data(request):
         queryset = Certificate.objects.filter(id = _id)
         cert = queryset[0]
         cert_path = os.path.join(settings.MEDIA_ROOT,str(cert.upload))
-        results = check_extracted_data(_id)
-        return Response({"message" : "Data Extracted","results" : results,"cert":{"id":cert.id,'name':cert.name}},status=status.HTTP_200_OK)
+        results = check_extracted_data(_id).to_dict(orient="records")
+        return Response({"message" : "Data Extracted","results" : results,"cert":{"id":cert.id,'name':cert.name,'tag_configuration_id':cert.tag_configuration_id}},status=status.HTTP_200_OK)
     except Exception as e:
         print(e)
         return Response({"error" : str(e)},status=status.HTTP_400_BAD_REQUEST)
@@ -245,6 +293,30 @@ def upload_edited_data(request):
         log_user_activity(req_user,activity,FAILED)
         return Response({"message" : "Uploading Failed"},status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['POST'])
+@permission_classes((IsAuthenticated,PIDataAccessPolicy))
+def preview_configuration_api(request):
+    try:
+        _id = request.query_params["_id"]
+        activity = "Test Configuration with certificate with id: {}".format(_id)
+        req_user = str(request.user)
+        reference = request.data.get('reference')
+
+        #@print(type(reference)==InMemoryUploadedFile)
+        if reference:
+            if type(reference) == str:
+                reference = os.path.join(settings.BASE_DIR,urlparse(reference).path.replace("/","",1))
+            print(reference)
+            reference = pd.read_csv(reference)
+
+        pi_data = check_extracted_data(_id)
+        transformation = request.data.get('transformation')
+        preview = preview_configuration(pi_data,reference,transformation).to_dict(orient="records")
+        #print(pd.read_csv(request.data.get('reference')))
+        return Response({"message" : "Sample tag/parameter map retrieved.","preview" : preview},status=status.HTTP_200_OK)
+    except Exception as e:
+        print(e)
+        return Response({"message": "Configuration Failed"},status=status.HTTP_400_BAD_REQUEST) 
 
 #HELPER FUNCTIONS
 @background(schedule=timezone.now())
@@ -296,7 +368,7 @@ def extract_dga_params(_id,req_user,activity):
             pass
             #raise(e)
     final_results =  pd.concat(concat, axis=0)
-    #Save filex
+    #Save file
     cert_name = cert.name
     cert_type = cert.cert_type
     #return Response({"message" : "Data Extracted","results" : results},status=status.HTTP_200_OK)
@@ -376,8 +448,7 @@ def check_extracted_data(_id):
         filepath = queryset[0].filepath
         extracted_data_df = pd.read_csv(filepath)
         extracted_data_df = extracted_data_df.where(extracted_data_df.notnull(), None)
-        results = extracted_data_df.to_dict(orient="records")
-        return results
+        return extracted_data_df
     return has_data
 
 def save_extracted_data(_id,name,cert_type,filepath,results_df):

@@ -29,7 +29,7 @@ DEBUG = True
 
 hostname = socket.gethostname()
 host_ip = socket.gethostbyname(hostname)
-ALLOWED_HOSTS = ['localhost',"192.168.100.43","192.168.0.101"]
+ALLOWED_HOSTS = ['localhost',"192.168.100.43","192.168.0.101",host_ip]
 
 
 # Application definition
