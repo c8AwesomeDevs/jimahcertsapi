@@ -124,10 +124,11 @@ def upload_to_pi_solo(metadata,record):
 					return True
 				return False				
 			except Exception as e:
-				print(e)
+				#print(e)
+				pass
 		return False
 	except Exception as e:
-		print(e)
+		#print(e)
 		return False
 
 def get_web_id(endpoint,auth):
@@ -144,7 +145,7 @@ def get_web_id(endpoint,auth):
 		resp = requests.get(endpoint,auth=auth,verify=False)
 		return resp.json()['WebId']
 	except Exception as e:
-		print(e)
+		#print(e)
 		return None
 
 def upload_bulk(endpoint,auth,data):

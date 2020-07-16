@@ -26,7 +26,7 @@ from api.libs.coal.controller.controller import Controller
 from api.libs.dga.dga_extractor import *
 from api.libs.pi.pi import *
 from api.libs.consts.activitylog_status import *
-from api.libs.tagconfiguration.tag_conf import preview_configuration
+from api.libs.tagconfiguration.tag_conf import preview_configuration,extract_param_tag_mapping,map_data_tagnames
 from .data_access_policy import PIDataAccessPolicy
 from .pagination import ModifiedPagination
 #Other Libraries
@@ -264,19 +264,36 @@ def upload_edited_data(request):
     Returns:
         Response: An API response returning the status on uploading extracted data to PI.
     """
-    print("UPloading edited data")
+
+    #Request 
+    _id = request.query_params["_id"]
+    activity = "Upload Data from Certificate with id {}".format(_id)
+    req_user = str(request.user)
     try:
-        _id = request.query_params["_id"]
-        activity = "Upload Data from Certificate with id {}".format(_id)
-        req_user = str(request.user)
+        #Preprocesses df
         metadata = request.data["metadata"]
         data_to_save = request.data["piData"]
         data_df = pd.DataFrame.from_records(data_to_save)
         data_df['Timestamp'] = pd.to_datetime(data_df['Timestamp']) 
         data_df['Timestamp'] = data_df['Timestamp'].apply(lambda x : (x + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S.%f"))
-        extracted_data_csv = ExtractedDataCSV.objects.get(id = _id)
-        data_df.to_csv(extracted_data_csv.filepath, index=False)
 
+        #Get Tag Configuration
+        extracted_data_csv = ExtractedDataCSV.objects.get(id = _id)
+        certificate = Certificate.objects.get(id = _id)
+        try:
+            tag_conf = TagConfigurationTemplate.objects.get(id=certificate.tag_configuration_id)
+            reference_path = os.path.join(settings.MEDIA_ROOT,str(tag_conf.reference))
+            reference_df = pd.read_csv(reference_path)
+            tag_mapping = extract_param_tag_mapping(data_df,reference_df,tag_conf.transformation)
+        except TagConfigurationTemplate.DoesNotExist:
+            reference_df = None
+            DEFAULT_QUERY = "Select Parameter,Parameter as Tagname from pi_data"
+            tag_mapping = extract_param_tag_mapping(data_df,reference_df,DEFAULT_QUERY)
+        print(tag_mapping)
+        print(map_data_tagnames(data_df,tag_mapping))
+
+
+        #Transform data for upload
         data_df['Uploaded']  = data_df.apply(
                 lambda row : upload_to_pi_solo(metadata,{
                     "Parameter":row["Parameter"],
@@ -285,11 +302,13 @@ def upload_edited_data(request):
                 ) if row["Validated"] else False,
                 axis=1
             )
+
+        #Save state and log activity
         data_df.to_csv(extracted_data_csv.filepath, index=False)
         log_user_activity(req_user,activity,COMPLETED)
         return Response({"message" : "Edited Data Uploaded"},status=status.HTTP_200_OK)
     except Exception as e:
-        print(e)
+        raise(e)
         log_user_activity(req_user,activity,FAILED)
         return Response({"message" : "Uploading Failed"},status=status.HTTP_400_BAD_REQUEST)
 
