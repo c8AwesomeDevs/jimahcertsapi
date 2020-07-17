@@ -25,12 +25,6 @@ SECRET_KEY = 'cec3xg9lv64#t3_js&za(wgl)9*v!w481(tt14_3c2+65nbz6x'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-
-hostname = socket.gethostname()
-host_ip = socket.gethostbyname(hostname)
-ALLOWED_HOSTS = ['localhost',"192.168.100.43","192.168.0.101",host_ip]
-
-
 # Application definition
 
 INSTALLED_APPS = [

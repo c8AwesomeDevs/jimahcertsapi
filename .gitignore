@@ -1,3 +1,4 @@
 media/*
 static/*
 jimahcertsapi/settings/dev.py
+api/migrations/*
