@@ -121,6 +121,12 @@ class UserActivitiesViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def get_home(request):
+    return Response({"message": "Welcome to C8-Cube API"},status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
 def get_user_groups(request):
     groups = request.user.groups.all()
