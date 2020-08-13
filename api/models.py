@@ -116,6 +116,20 @@ class TagConfigurationTemplate(models.Model):
 		"""
 		return "{}-{}".format(self.id,self.name)
 
+
+class ManualLogTemplate(models.Model):
+
+	name = models.CharField(max_length=100)
+	template = models.FileField(upload_to='manuallogs\\',blank = True)
+
+	def __str__(self):
+		"""Summary
+		
+		Returns:
+		    TYPE: Description
+		"""
+		return "{}-{}".format(self.id,self.name)
+
 class UserActivities(models.Model):
 
 	"""Summary

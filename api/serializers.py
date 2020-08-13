@@ -4,7 +4,7 @@ TODO: (Details)
 """
 
 from rest_framework import serializers
-from .models import Certificate,UserActivities,TagConfigurationTemplate
+from .models import Certificate,UserActivities,TagConfigurationTemplate,ManualLogTemplate
 
 
 class CertificateSerializer(serializers.HyperlinkedModelSerializer):
@@ -38,3 +38,9 @@ class TagConfigurationTemplateSerializer(serializers.HyperlinkedModelSerializer)
 	class Meta:
 		model = TagConfigurationTemplate
 		fields = ['id','name','transformation','reference']
+
+class ManualLogTemplateSerializer(serializers.HyperlinkedModelSerializer):
+	class Meta:
+		model = ManualLogTemplate
+		fields = ['id','name', 'template']
+		
