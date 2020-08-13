@@ -20,8 +20,8 @@ from rest_framework import viewsets
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated,BasePermission
 #Developer Libaries
-from api.models import Certificate,ExtractedDataCSV,TagConfigurationTemplate,CoalParameters,CoalParametersSection,CoalParametersDividers,UserActivities
-from api.serializers import CertificateSerializer,UserActivitiesSerializer,TagConfigurationTemplateSerializer
+from api.models import Certificate,ExtractedDataCSV,TagConfigurationTemplate,ManualLogTemplate,CoalParameters,CoalParametersSection,CoalParametersDividers,UserActivities
+from api.serializers import CertificateSerializer,UserActivitiesSerializer,TagConfigurationTemplateSerializer,ManualLogTemplateSerializer
 from api.libs.coal.controller.controller import Controller 
 from api.libs.dga.dga_extractor import *
 from api.libs.pi.pi import *
@@ -103,6 +103,14 @@ class TagConfigurationTemplateViewSet(viewsets.ModelViewSet):
         self.permission_classes = [IsAuthenticated,IsDataValidator,]
         return super(TagConfigurationTemplateViewSet, self).get_permissions()
 
+class ManualLogTemplateViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ManualLogTemplateSerializer
+    queryset = ManualLogTemplate.objects.all()
+
+    # def get_permissions(self):    
+    #     self.permission_classes = [IsAuthenticated,IsDataValidator,]
+    #     return super(TagConfigurationTemplateViewSet, self).get_permissions()
 
 class UserActivitiesViewSet(viewsets.ModelViewSet):
     """API Class View for UserActivities model.
@@ -261,7 +269,7 @@ def test_pi_connection(request):
 
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
-def upload_edited_data(request):
+def upload_certificate_data(request):
     """API Functional View on uploading extracted data to PI.
     
     Args:
@@ -291,12 +299,14 @@ def upload_edited_data(request):
             reference_path = os.path.join(settings.MEDIA_ROOT,str(tag_conf.reference))
             reference_df = pd.read_csv(reference_path)
             tag_mapping = extract_param_tag_mapping(data_df,reference_df,tag_conf.transformation)
-        except TagConfigurationTemplate.DoesNotExist:
+        except Exception as e:
+            print(e)
             reference_df = None
             DEFAULT_QUERY = "Select Parameter,Parameter as Tagname from pi_data"
             tag_mapping = extract_param_tag_mapping(data_df,reference_df,DEFAULT_QUERY)
-        print(tag_mapping)
-        print(map_data_tagnames(data_df,tag_mapping))
+
+        # print(tag_mapping)
+        # print(map_data_tagnames(data_df,tag_mapping))
 
 
         #Transform data for upload
@@ -309,10 +319,11 @@ def upload_edited_data(request):
                 axis=1
             )
 
+        count_uploaded_data = (data_df["Uploaded"]).sum()
         #Save state and log activity
         data_df.to_csv(extracted_data_csv.filepath, index=False)
         log_user_activity(req_user,activity,COMPLETED)
-        return Response({"message" : "Edited Data Uploaded"},status=status.HTTP_200_OK)
+        return Response({"message" : "Edited Data Uploaded. {} rows uploaded".format(count_uploaded_data)},status=status.HTTP_200_OK)
     except Exception as e:
         raise(e)
         log_user_activity(req_user,activity,FAILED)
@@ -342,6 +353,18 @@ def preview_configuration_api(request):
     except Exception as e:
         print(e)
         return Response({"message": "Configuration Failed"},status=status.HTTP_400_BAD_REQUEST) 
+
+@api_view(['POST'])
+@permission_classes((IsAuthenticated,PIDataAccessPolicy))
+def extract_manual_log_template(request):
+    try:
+        _id = request.query_params["_id"]
+        manuallogtemplate = ManualLogTemplate.objects.get(id=_id)
+        template = pd.read_csv(manuallogtemplate.template).to_dict(orient="records")
+        print(template)
+        return Response({"message" : "Manual Log Template retrieved.","template" : template},status=status.HTTP_200_OK)
+    except Exception as e:
+        print(e)
 
 #HELPER FUNCTIONS
 @background(schedule=timezone.now())
