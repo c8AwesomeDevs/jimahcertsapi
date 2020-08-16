@@ -288,9 +288,9 @@ def upload_certificate_data(request):
         metadata = request.data["metadata"]
         data_to_save = request.data["piData"]
         data_df = pd.DataFrame.from_records(data_to_save)
+        data_df = data_df.dropna()
         data_df['Timestamp'] = pd.to_datetime(data_df['Timestamp']) 
         data_df['Timestamp'] = data_df['Timestamp'].apply(lambda x : (x + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S.%f"))
-
         #Get Tag Configuration
         extracted_data_csv = ExtractedDataCSV.objects.get(id = _id)
         certificate = Certificate.objects.get(id = _id)
@@ -304,10 +304,6 @@ def upload_certificate_data(request):
             reference_df = None
             DEFAULT_QUERY = "Select Parameter,Parameter as Tagname from pi_data"
             tag_mapping = extract_param_tag_mapping(data_df,reference_df,DEFAULT_QUERY)
-
-        # print(tag_mapping)
-        # print(map_data_tagnames(data_df,tag_mapping))
-
 
         #Transform data for upload
         data_df['Uploaded']  = data_df.apply(
@@ -323,11 +319,39 @@ def upload_certificate_data(request):
         #Save state and log activity
         data_df.to_csv(extracted_data_csv.filepath, index=False)
         log_user_activity(req_user,activity,COMPLETED)
-        return Response({"message" : "Edited Data Uploaded. {} rows uploaded".format(count_uploaded_data)},status=status.HTTP_200_OK)
+        return Response({"message" : "Certificate Data Upload Task completed. {} rows uploaded".format(count_uploaded_data)},status=status.HTTP_200_OK)
     except Exception as e:
         raise(e)
         log_user_activity(req_user,activity,FAILED)
         return Response({"message" : "Uploading Failed"},status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def upload_manual_data(request):
+    try:
+        #Preprocesses df
+        metadata = request.data["metadata"]
+        data_to_save = request.data["piData"]
+        data_df = pd.DataFrame.from_records(data_to_save)
+        data_df = data_df.dropna()
+        data_df['Timestamp'] = pd.to_datetime(data_df['Timestamp']) 
+        data_df['Timestamp'] = data_df['Timestamp'].apply(lambda x : (x + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S.%f"))
+
+        #TODO Tag Configuration
+
+        #Transform data for upload
+        data_df['Uploaded']  = data_df.apply(
+                lambda row : upload_to_pi_solo(metadata,{
+                    "Parameter":row["Parameter"],
+                    "Timestamp":row["Timestamp"],
+                    "Value":row["Value"]}
+                ) if row["Validated"] else False,
+                axis=1
+            )
+        count_uploaded_data = (data_df["Uploaded"]).sum()
+        return Response({"message" : "Manual Logs Upload Task completed. {} rows uploaded".format(count_uploaded_data)},status=status.HTTP_200_OK)        
+    except Exception as e:
+        raise(e)
+        return Response({"message" : "Uploading Failed"},status=status.HTTP_400_BAD_REQUEST)        
 
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
@@ -409,6 +433,7 @@ def extract_dga_params(_id,req_user,activity):
             df["Timestamp"] = datetime.now()
             df["Description"]  = None       
             df["Validated"]  = True
+            df["Uploaded"]  = False
             df['Value'] = df[get_values(df.columns)].apply(lambda x: extract_numbers_or_str(str(x)))
             df = df[~df["Parameter"].str.contains("Equipment") == True]
             concat.append(df)
@@ -416,6 +441,8 @@ def extract_dga_params(_id,req_user,activity):
             pass
             #raise(e)
     final_results =  pd.concat(concat, axis=0)
+    final_results = final_results[["Parameter","Description","Timestamp","Value","Validated",'Uploaded']]
+    #final_results.columns = ["Parameter","Description","Timestamp","Value","Validated",'Uploaded']
     #Save file
     cert_name = cert.name
     cert_type = cert.cert_type
@@ -464,6 +491,8 @@ def extract_coal_properties(_id,req_user,activity):
     try:
         results = controller.process_pdf(cert_path)
         results_df = pd.DataFrame(results)
+        results_df["Uploaded"] = False
+        results_df = results_df[["Parameter","Description","Timestamp","Value","Validated",'Uploaded']]
         #Save file
         cert_name = cert.name
         cert_type = cert.cert_type

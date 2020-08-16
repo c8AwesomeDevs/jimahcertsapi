@@ -130,6 +130,10 @@ class ManualLogTemplate(models.Model):
 		"""
 		return "{}-{}".format(self.id,self.name)
 
+class DigitalStates(models.Model):
+	id = models.IntegerField(primary_key=True)
+	name = models.CharField(max_length=100)
+
 class UserActivities(models.Model):
 
 	"""Summary
