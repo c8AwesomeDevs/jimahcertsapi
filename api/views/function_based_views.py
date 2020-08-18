@@ -201,17 +201,19 @@ def upload_certificate_data(request):
             DEFAULT_QUERY = "Select Parameter,Parameter as Tagname from pi_data"
             tag_mapping = extract_param_tag_mapping(data_df,reference_df,DEFAULT_QUERY)
 
-        print(tag_mapping)
+        data_df = pd.merge(data_df, tag_mapping, on='Parameter', how='inner')
         #Transform data for upload
         data_df['Uploaded']  = data_df.apply(
-                lambda row : upload_to_pi_solo(metadata,{
-                    "Parameter":row["Parameter"],
-                    "Timestamp":row["Timestamp"],
-                    "Value":row["Value"]}
-                ) if row["Validated"] else False,
-                axis=1
-            )
+          lambda row : upload_to_pi_solo(metadata,{
+              "Parameter":row["Tagname"],
+              "Timestamp":row["Timestamp"],
+              "Value":row["Value"]}
+          ) if row["Validated"] else False,
+          axis=1
+        )
         count_uploaded_data = (data_df["Uploaded"]).sum()
+        print(data_df.columns)
+        data_df = data_df.drop(columns=["Tagname"])
         #Save state and log activity
         data_df.to_csv(extracted_data_csv.filepath, index=False)
         log_user_activity(req_user,activity,COMPLETED)

@@ -8,9 +8,10 @@ TODO: (Details)
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated,BasePermission
+from rest_framework_jwt.views import ObtainJSONWebToken
 #Developer Libaries
 from api.models import Certificate,ExtractedDataCSV,TagConfigurationTemplate,ManualLogTemplate,CoalParameters,CoalParametersSection,CoalParametersDividers,UserActivities
-from api.serializers import CertificateSerializer,UserActivitiesSerializer,TagConfigurationTemplateSerializer,ManualLogTemplateSerializer
+from api.serializers import CertificateSerializer,UserActivitiesSerializer,TagConfigurationTemplateSerializer,ManualLogTemplateSerializer,JWTSerializer
 from api.pagination import ModifiedPagination
 
 
@@ -23,6 +24,10 @@ class IsDataValidator(BasePermission):
 
 
 #VIEWS
+# Create your views here.
+class ObtainJWTView(ObtainJSONWebToken):
+    serializer_class = JWTSerializer
+
 class CertificateViewSet(viewsets.ModelViewSet):
     """API Class View for Certificates model.
     
