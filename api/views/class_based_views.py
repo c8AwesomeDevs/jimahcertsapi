@@ -8,7 +8,8 @@ TODO: (Details)
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated,BasePermission
-from rest_framework_jwt.views import ObtainJSONWebToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+#from rest_framework_jwt.views import ObtainJSONWebToken
 #Developer Libaries
 from api.models import Certificate,ExtractedDataCSV,TagConfigurationTemplate,ManualLogTemplate,CoalParameters,CoalParametersSection,CoalParametersDividers,UserActivities
 from api.serializers import CertificateSerializer,UserActivitiesSerializer,TagConfigurationTemplateSerializer,ManualLogTemplateSerializer,JWTSerializer
@@ -25,7 +26,7 @@ class IsDataValidator(BasePermission):
 
 #VIEWS
 # Create your views here.
-class ObtainJWTView(ObtainJSONWebToken):
+class ObtainJWTView(TokenObtainPairView):
     serializer_class = JWTSerializer
 
 class CertificateViewSet(viewsets.ModelViewSet):
