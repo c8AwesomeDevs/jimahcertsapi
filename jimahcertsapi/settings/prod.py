@@ -4,7 +4,7 @@ from .base import *
 DEBUG = True
 hostname = socket.gethostname()
 host_ip = socket.gethostbyname(hostname)
-ALLOWED_HOSTS = ['localhost',"10.10.8.115","calibr8.ddns.net",host_ip]
+ALLOWED_HOSTS = ['localhost',"10.10.8.115","calibr8.ddns.net","192.168.254.166",host_ip]
 
 DATABASES = {
     # 'default': {
@@ -14,7 +14,7 @@ DATABASES = {
     'default': {
         'ENGINE': "django.db.backends.postgresql_psycopg2",
         'NAME': "JIMAHCERT",
-        'USER': "jimah-cert-admin",
+        'USER': "jimahcertadmin",
         'PASSWORD': "C8@dm1n",
         'HOST': "localhost",
         'PORT': "5432",

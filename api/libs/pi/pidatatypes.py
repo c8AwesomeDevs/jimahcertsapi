@@ -1,4 +1,5 @@
 import enum
+from datetime import datetime
 
 class PIDataTypes(enum.Enum):
 	FLOAT = "FLOAT"
@@ -6,3 +7,9 @@ class PIDataTypes(enum.Enum):
 	STR = "STRING"
 	TIMESTAMP = "TIMESTAMP"
 	DIGSTATE = "DIGITAL STATE"
+
+def transform(value,data_type):
+	try:
+		
+	except Exception as e:
+		return value

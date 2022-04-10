@@ -161,7 +161,7 @@ def test_pi_connection(request):
             return Response({"error": PI_CONNECTION_ERROR.format(host)},status=response.status_code)
     except Exception as e:
         print(e)
-        return Response({"message" : "Saving Failed"},status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message" : "Connection Failed"},status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,PIDataAccessPolicy))
